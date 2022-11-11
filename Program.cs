@@ -1,16 +1,11 @@
-using AspNetCore.Identity.Mongo;
-using GovOrdersApp.Areas.Identity;
-using GovOrdersApp.Data;
 using GovOrdersApp.Data.DB;
+using GovOrdersApp.Data.Orders;
+using GovOrdersApp.Data.Users;
 using GovOrdersApp.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
-
+builder.Services.AddAuthenticationCore();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
+    provider.GetRequiredService<AuthStateProvider>());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -53,21 +51,7 @@ BsonClassMap.RegisterClassMap<OrderDocument>();
 BsonClassMap.RegisterClassMap<Comment>();
 BsonClassMap.RegisterClassMap<Order>();
 
-new UsersContext().AddUser(new AdminRole()
-{
-    Email = "admin@dot.net",
-    Password = "admin",
-    FullName = "Admin",
-    Login = "admin",
-    Phone = "1234567890",
-});
-new UsersContext().AddUser(new CustomerRole()
-{
-    Email = "customer@test",
-    Password = "customer",
-    FullName = "TestCustomer",
-    Login = "testcustomer",
-    Phone = "",
-});
+DBConnection.users.Indexes.CreateOne(new CreateIndexModel<AppUser>(Builders<AppUser>.IndexKeys.Ascending(x => x.Login), new CreateIndexOptions { Unique = true }));
+DBConnection.users.Indexes.CreateOne(new CreateIndexModel<AppUser>(Builders<AppUser>.IndexKeys.Ascending(x => x.Email), new CreateIndexOptions { Unique = true }));
 
 app.Run();

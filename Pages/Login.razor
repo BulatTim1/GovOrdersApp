@@ -1,0 +1,55 @@
+﻿@page "/login"
+@inject AuthStateProvider authStateProvider
+@inject UserService userService
+@inject NavigationManager navManager
+
+<PageTitle>Вход</PageTitle>
+
+<h3>Вход</h3>
+<form @onsubmit="Authentication">
+    @foreach(var item in userService.GetErrors())
+    {
+	    <div class="alert alert-danger">@item</div>
+    }
+    <label>
+        Логин: 
+        <input class="form-control" required @bind="login" />
+    </label>
+    <br />
+    <label>
+        Пароль:
+        <input class="form-control" required type="password" @bind="password" />
+    </label>
+    <input class="form-control btn btn-primary" type="submit" placeholder="Войти" />
+</form>
+
+@code
+{
+    private string login = "";
+    private string password = "";
+	
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private void Authentication()
+    {
+        if (userService.Authorization(login, password))
+        {
+            AuthStateProvider.IsAuthenticated = true;
+            AuthStateProvider.UserName = userService.GetUsername();
+            AuthStateProvider.Role = userService.GetRole();
+            navManager.NavigateTo("");
+        }
+        //if (!isAuthenticated.HasValue)
+        //{
+        //    AuthStateProvider.IsAuthenticating = true;
+        //}
+        //else
+        //{
+        //    AuthStateProvider.IsAuthenticating = false;
+        //    AuthStateProvider.IsAuthenticated = isAuthenticated.Value;
+        //}
+
+        authStateProvider.NotifyAuthenticationStateChanged();
+    }
+}

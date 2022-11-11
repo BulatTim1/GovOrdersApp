@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace GovOrdersApp.Data
+namespace GovOrdersApp.Data.Orders
 {
     public class Order
     {
@@ -8,7 +8,7 @@ namespace GovOrdersApp.Data
         public string Id { get; set; }
 
         public string Industry { get; set; }
-        
+
         public string Author { get; set; }
 
         public string Title { get; set; }

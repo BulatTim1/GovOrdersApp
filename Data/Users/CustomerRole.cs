@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace GovOrdersApp.Data
+namespace GovOrdersApp.Data.Users
 {
     public class CustomerRole : AppUser
     {

@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using GovOrdersApp.Data.Users;
+using MongoDB.Driver;
 
 namespace GovOrdersApp.Data.DB
 {
@@ -41,9 +42,9 @@ namespace GovOrdersApp.Data.DB
             return users.Find(user => true).ToList();
         }
 
-        public AppUser Authenticate(string email, string password)
+        public AppUser Authenticate(string login, string password)
         {
-            return users.Find(user => user.Email == email && user.Password == password).FirstOrDefault();
+            return users.Find(user => user.Login == login && user.Password == password).FirstOrDefault();
         }
     }
 }

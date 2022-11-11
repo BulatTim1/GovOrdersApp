@@ -1,9 +1,49 @@
 ﻿@page "/"
+@inject AuthStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserService userService
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Хаб</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Хаб</h1>
 
-Welcome to your new app.
+<AuthorizeView>
+	<NotAuthorized>
+		<p>Чтобы увидеть здесь что-то, нужно войти.</p>
+	</NotAuthorized>
+	<Authorized>
+		@if(role == "Role")
+		{
+			<p>Вы вошли как администратор.</p>
+		}
+		else if (role == "BuilderRole")
+		{
+			<p>Вы вошли как застройщик.</p>
+		}
+		else if (role == "CustomerRole")
+		{
+			<p>Вы вошли как заказчик.</p>
+		}
+		else if (role == "DesignerRole")
+		{
+			<p>Вы вошли как проектировщик.</p>
+		}
+		else
+		{
+			<p>Вы как сюда зашли?</p>
+		}
+	</Authorized>
+</AuthorizeView>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code
+{
+	string role = "Guest"; 
+	protected override void OnInitialized()
+	{
+		if (AuthStateProvider.IsAuthenticated)
+		{
+			role = userService.GetRole();
+			navManager.NavigateTo("");
+		}
+	}
+}

@@ -1,0 +1,76 @@
+﻿@page "/register"
+@inject AuthStateProvider authStateProvider
+@inject UserService userService
+@inject NavigationManager navManager
+
+<PageTitle>Register</PageTitle>
+
+<h3>Register</h3>
+<form @onsubmit="Registration">
+    @foreach (var item in userService.GetErrors())
+    {
+        <div class="form-control alert alert-danger">@item</div>
+    }
+    <label>
+        Логин:
+        <input required class="form-control" @bind="login" />
+    </label>
+    <br />
+    <label>
+        Почта:
+        <input required class="form-control" @bind="email" />
+    </label>
+    <br />
+    <label>
+        Пароль:
+        <input required class="form-control" type="password" @bind="password" />
+    </label>
+    <br />
+    <label>
+        Повторите пароль:
+        <input required class="form-control" type="password" @bind="repassword" />
+    </label>
+    <br />
+    <label>
+        <select class="form-control" @bind="role">
+            <option value="" disabled selected hidden>Выберите роль</option>
+            <option value="Customer">Заказчик</option>
+            <option value="Builder">Застройщик</option>
+            <option value="Designer">Проектировщик</option>
+        </select>
+    </label>
+    <input class="form-control btn btn-primary" type="submit" placeholder="Зарегистрироваться"/>
+</form>
+
+@code
+{
+    private string login = "";
+    private string email = "";
+    private string password = "";
+    private string repassword = "";
+    private string role = "";
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private void Registration()
+    {
+        if (userService.Registration(login, email, password, repassword, role))
+        {
+            AuthStateProvider.IsAuthenticated = true;
+            AuthStateProvider.UserName = userService.GetUsername();
+            AuthStateProvider.Role = userService.GetRole();
+            navManager.NavigateTo("");
+        }
+        //if (!isAuthenticated.HasValue)
+        //{
+        //    AuthStateProvider.IsAuthenticating = true;
+        //}
+        //else
+        //{
+        //    AuthStateProvider.IsAuthenticating = false;
+        //    AuthStateProvider.IsAuthenticated = isAuthenticated.Value;
+        //}
+
+        authStateProvider.NotifyAuthenticationStateChanged();
+    }
+}
