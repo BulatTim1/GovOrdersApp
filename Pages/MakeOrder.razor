@@ -1,0 +1,53 @@
+﻿@page "/makeorder"
+@inject NavigationManager navManager
+@inject UserService userService
+@inject OrderService orderService
+
+<PageTitle>Создать заказ</PageTitle>
+<h3>Создать заказ</h3>
+
+<form @onsubmit="CreateOrder">
+	<label>
+		Название заказа:
+		<input @bind="title" class="form-control" />
+	</label>
+	<br />
+	<label>
+		Описание заказа:
+		<textarea @bind="description" class="form-control" />
+	</label>
+	<br />
+	<input class="btn btn-primary" type="submit" placeholder="Создать заказ" />
+</form>
+
+@code {
+
+	string title = "";
+	string description = "";
+	string industry = "";
+	string author = "";
+
+	protected override void OnInitialized()
+	{
+		if (!AuthStateProvider.IsAuthenticated)
+		{
+			navManager.NavigateTo("/login");
+		}
+		string role = userService.GetRole();
+		if (role != "CustomerRole" && role != "AdminRole")
+		{
+			navManager.NavigateTo("/login");
+		}
+		else
+		{
+			industry = userService.GetIndustry();
+			author = userService.GetId();
+		}
+	}
+
+	private void CreateOrder()
+	{
+		orderService.AddOrder(title, description, industry, author);
+		navManager.NavigateTo("");
+	}
+}

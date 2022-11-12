@@ -1,0 +1,179 @@
+﻿@page "/profile"
+@using GovOrdersApp.Data.Users
+@inject NavigationManager navManager
+@inject UserService userService
+
+<PageTitle>Профиль @user.Login</PageTitle>
+<h3>Профиль @user.Login</h3>
+<style>
+	label {
+		margin-bottom: 1em;
+	}
+</style>
+<form @onsubmit="UpdateUser">
+	@foreach (var item in userService.GetErrors())
+	{
+		<div class="form-control alert alert-danger">@item</div>
+	}
+	<label>
+		Логин:
+		@user.Login
+	</label>
+	<br />
+	<label>
+		Почта:
+		@user.Email
+	</label>
+	<br />
+	<label>
+		Телефон:
+		<input @bind="user.Phone" type="tel"/>
+	</label>
+	<br />
+	<label>
+		Роль:
+		@role
+	</label>
+	<br />
+	<label>
+		Старый пароль:
+		<input @bind="oldPassword" />
+	</label>
+	<br />
+	<label>
+		Новый пароль:
+		<input @bind="newPassword" />
+	</label>
+	<br />
+	<label>
+		Повторите новый пароль:
+		<input @bind="renewPassword" />
+	</label>
+	<br />
+	@if (role == "CustomerRole")
+	{
+		<label>
+			ФИО:
+			<input @bind="((CustomerRole)user).FullName" />
+		</label>
+		<br />
+		<label>
+			Должность:
+			<input @bind="((CustomerRole)user).Position" />
+		</label>
+		<br />
+		<label>
+			Отрасль:
+			<select @bind="((CustomerRole)user).Industry">
+				<option value="WaterSupply">Водоснабжение</option>
+				<option value="Gasification">Газификация</option>
+			</select>
+		</label>
+		<br />
+	}
+	else if (role == "BuilderRole")
+	{
+		<label>
+			Название организации:
+			<input @bind="((BuilderRole)user).FullName" />
+		</label>
+		<br />
+		<label>
+			ИНН:
+			<input @bind="((BuilderRole)user).INN" />
+		</label>
+		<br />
+		<label>
+			КПП:
+			<input @bind="((BuilderRole)user).KPP" />
+		</label>
+		<br />
+		<label>
+			ОГРН:
+			<input @bind="((BuilderRole)user).OGRN" />
+		</label>
+		<br />
+		<label>
+			Адрес:
+			<input @bind="((BuilderRole)user).Address" />
+		</label>
+		<br />
+		<label>
+			ФИО руководителя:
+			<input @bind="((BuilderRole)user).Manager" />
+		</label>
+		<br />
+	}
+	else if (role == "DesignerRole")
+	{
+		<label>
+			Название организации:
+			<input @bind="((DesignerRole)user).FullName" />
+		</label>
+		<br />
+		<label>
+			ИНН:
+			<input @bind="((DesignerRole)user).INN" />
+		</label>
+		<br />
+		<label>
+			КПП:
+			<input @bind="((DesignerRole)user).KPP" />
+		</label>
+		<br />
+		<label>
+			ОГРН:
+			<input @bind="((DesignerRole)user).OGRN" />
+		</label>
+		<br />
+		<label>
+			Адрес:
+			<input @bind="((DesignerRole)user).Address" />
+		</label>
+		<br />
+		<label>
+			ФИО руководителя:
+			<input @bind="((DesignerRole)user).Director" />
+		</label>
+		<br />
+		<label>
+			Главный инженер проекта:
+			<input @bind="((DesignerRole)user).GIP" />
+		</label>
+		<br />
+	}
+	<input class="btn btn-primary" type="submit" placeholder="Обновить профиль" />
+</form>
+	
+@code {
+	AppUser user;
+	string role = "";
+	string oldPassword = "";
+	string newPassword = "";
+	string renewPassword = "";
+	protected override void OnInitialized()
+	{
+		if (!AuthStateProvider.IsAuthenticated)
+		{
+			navManager.NavigateTo("/login");
+		}
+		user = userService.GetCurrentUser();
+		role = userService.GetRole();
+	}
+
+	private void UpdateUser()
+	{
+		if (oldPassword != "" && newPassword != "" && renewPassword != "")
+		{
+			UpdatePassword();
+		}
+		if (userService.UpdateUser(user)) navManager.NavigateTo("");
+	}
+	private void UpdatePassword()
+	{
+		if(userService.UpdatePassword(user, oldPassword, newPassword, renewPassword))
+		{
+			navManager.NavigateTo("");
+		}
+	}
+}

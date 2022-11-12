@@ -15,6 +15,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<OrderService>();
+builder.Services.AddSingleton<FileService>();
 builder.Services.AddScoped<AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
     provider.GetRequiredService<AuthStateProvider>());

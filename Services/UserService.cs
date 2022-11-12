@@ -10,6 +10,17 @@ namespace GovOrdersApp.Services
         static UsersContext _context = new UsersContext();
         static AppUser CurrentUser;
         static List<string> errors = new List<string>();
+
+        public AppUser GetUser(string id)
+        {
+            return _context.GetUser(id);
+        }
+
+        public List<AppUser> GetUsersByRole(string role)
+        {
+            return _context.GetUsersByRole(role);
+        }
+        
         public bool Authorization(string login, string password)
         {
             login = login.Trim();
@@ -23,10 +34,9 @@ namespace GovOrdersApp.Services
             var res = _context.Authenticate(login, password);
             if (res != null)
             {
-                //res.CurrentUID = Guid.NewGuid().ToString();
-                //_context.UpdateUser(res);
+                res.Token = Guid.NewGuid().ToString();
+                _context.UpdateUser(res);
                 CurrentUser = res;
-                //IsAuthorizated = true;
                 return true;
             } 
             else
@@ -36,7 +46,7 @@ namespace GovOrdersApp.Services
             return false;
         }
 
-        public bool Registration(string login, string email, string password, string repassword, string role)
+        public bool Registration(string login, string email, string password, string repassword, string role, string industry = "")
         {
             login = login.Trim();
             email = email.Trim();
@@ -57,7 +67,15 @@ namespace GovOrdersApp.Services
             switch(role)
             {
                 case "Customer":
-                    newUser = new CustomerRole();
+                    if (industry == "")
+                    {
+                        errors.Add("Выберите отрасль!");
+                        return false;
+                    }
+                    newUser = new CustomerRole()
+                    {
+                        Industry = industry,
+                    };
                     break;
                 case "Builder":
                     newUser = new BuilderRole();
@@ -76,9 +94,8 @@ namespace GovOrdersApp.Services
             {
                 _context.AddUser(newUser);
                 CurrentUser = newUser;
-                //res.CurrentUID = Guid.NewGuid().ToString();
-                //_context.UpdateUser(res);
-                //IsAuthorizated = true;
+                newUser.Token = Guid.NewGuid().ToString();
+                _context.UpdateUser(newUser);
                 return true;
             } catch
             {
@@ -92,8 +109,15 @@ namespace GovOrdersApp.Services
             return CurrentUser;
         }
 
+        public string GetToken()
+        {
+            return CurrentUser.Token;
+        }
+
         public void Logout()
         {
+            CurrentUser.Token = null;
+            _context.UpdateUser(CurrentUser);
             CurrentUser = null;
         }
         
@@ -122,6 +146,74 @@ namespace GovOrdersApp.Services
             return temp;
         }
 
+        public string GetIndustry()
+        {
+            if (CurrentUser != null && CurrentUser.GetType() == typeof(CustomerRole))
+            {
+                return ((CustomerRole)CurrentUser).Industry;
+            }
+            return null;
+        }
+
+        public string GetId()
+        {
+            if (CurrentUser != null)
+            {
+                return CurrentUser.Id;
+            }
+            return "";
+        }
+
+        public bool UpdateUser(AppUser user)
+        {
+            if (user.IsValid())
+            {
+                _context.UpdateUser(user);
+                return true;
+            }
+            errors.Add("Введите верные значения");
+            return false;
+        }
+        
+        public bool UpdatePassword(AppUser user, string oldPassword, string newPassword, string renewPassword)
+        {
+            newPassword = newPassword.Trim();
+            renewPassword = renewPassword.Trim();
+            if (newPassword == "")
+            {
+                errors.Add("Пароль не должен быть пустым!");
+                return false;
+            }
+            if (newPassword != renewPassword)
+            {
+                errors.Add("Пароли не совпадают");
+                return false;
+            }
+            newPassword = sha256_hash(newPassword);
+            oldPassword = sha256_hash(oldPassword);
+            if (oldPassword != user.Password)
+            {
+                errors.Add("Неверный пароль");
+                return false;
+            }
+            user.Password = newPassword;
+            _context.UpdateUser(user);
+            return true;
+        }
+
+        public bool CheckToken(string token)
+        {
+            if (CurrentUser != null || token != "")
+            {
+                CurrentUser = _context.CheckToken(token);
+                if (CurrentUser != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
         public static String sha256_hash(string value)
         {
             StringBuilder Sb = new StringBuilder();

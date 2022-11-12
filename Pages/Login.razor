@@ -2,10 +2,16 @@
 @inject AuthStateProvider authStateProvider
 @inject UserService userService
 @inject NavigationManager navManager
+@inject IJSRuntime jsRuntime
 
 <PageTitle>Вход</PageTitle>
 
 <h3>Вход</h3>
+<style>
+    label {
+        margin-bottom: 1em;
+    }
+</style>
 <form @onsubmit="Authentication">
     @foreach(var item in userService.GetErrors())
     {
@@ -27,6 +33,7 @@
 {
     private string login = "";
     private string password = "";
+    LocalStorageService localStorage;
 	
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
@@ -35,6 +42,8 @@
     {
         if (userService.Authorization(login, password))
         {
+            localStorage = new LocalStorageService(jsRuntime);
+			localStorage.SetStringAsync("token", userService.GetToken());
             AuthStateProvider.IsAuthenticated = true;
             AuthStateProvider.UserName = userService.GetUsername();
             AuthStateProvider.Role = userService.GetRole();

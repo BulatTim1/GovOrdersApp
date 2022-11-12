@@ -1,0 +1,89 @@
+﻿@page "/order"
+@using GovOrdersApp.Data.Orders
+@using GovOrdersApp.Data.Users
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
+@inject OrderService orderService
+@inject NavigationManager navManager
+@inject UserService userService
+
+<PageTitle>Заказ</PageTitle>
+
+<h1>Заказ</h1>
+
+<form @onsubmit="UpdateOrder">
+	<label>
+		Название:
+		<input @bind="order.Title" />
+	</label>
+	<br />
+	<label>
+		Описание:
+		<textarea @bind="order.Description" />
+	</label>
+	<br />
+	<label>
+		Заказчик:
+		@AuthorName
+	</label>
+	<br />
+	<label>
+		Застройщик:
+		<select @bind="BuilderId">
+			<option value="" disabled selected hidden>Выберите застройщика</option>
+			@foreach (var item in builders)
+			{
+				<option value="@item.Id">@item.FullName</option>
+			}
+		</select>
+	</label>
+	<br />
+	<label>
+		Проектировщик:
+		<select @bind="DesignerId">
+			<option value="" disabled selected hidden>Выберите проектировщика</option>
+			@foreach (var item in designers)
+			{
+				<option value="@item.Id">@item.FullName</option>
+			}
+		</select>
+	</label>
+	<br />
+</form>
+@code {
+	[Parameter]
+	public string Id { get; set; } = "";
+
+	Order order;
+	List<AppUser> builders;
+	List<AppUser> designers;
+	string AuthorName = "";
+	string BuilderId = "";
+	string DesignerId = "";
+
+	protected override void OnInitialized()
+	{
+		StringValues valueFromQueryString;
+		//get our URI
+		var uri = navManager.ToAbsoluteUri(navManager.Uri);
+
+		var foundQueryParameter = QueryHelpers.ParseQuery(uri.Query).TryGetValue("id", out valueFromQueryString);
+		if (foundQueryParameter)
+		{
+			Id = valueFromQueryString;
+		}
+		order = orderService.GetOrder(Id);
+		if (order == null)
+		{
+			navManager.NavigateTo("");
+		}
+		AuthorName = userService.GetUser(order.Author).FullName;
+		builders = userService.GetUsersByRole("BuilderRole");
+		designers = userService.GetUsersByRole("DesignerRole");
+	}
+
+	private void UpdateOrder()
+	{
+
+	}
+}

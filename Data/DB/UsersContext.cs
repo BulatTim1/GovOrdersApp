@@ -1,4 +1,5 @@
 ﻿using GovOrdersApp.Data.Users;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GovOrdersApp.Data.DB
@@ -10,6 +11,11 @@ namespace GovOrdersApp.Data.DB
         public AppUser GetUser(string id)
         {
             return users.Find(user => user.Id == id).FirstOrDefault();
+        }
+
+        public List<AppUser> GetUsersByRole(string role)
+        {
+            return users.Find(new BsonDocument("_t", role)).ToList();
         }
 
         public AppUser GetUserByEmail(string email)
@@ -45,6 +51,11 @@ namespace GovOrdersApp.Data.DB
         public AppUser Authenticate(string login, string password)
         {
             return users.Find(user => user.Login == login && user.Password == password).FirstOrDefault();
+        }
+
+        public AppUser? CheckToken(string token)
+        {
+            return users.Find(user => user.Token == token).FirstOrDefault();
         }
     }
 }

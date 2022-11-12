@@ -4,7 +4,6 @@ using System.Security.Claims;
 public class AuthStateProvider : AuthenticationStateProvider
 {
     public static bool IsAuthenticated { get; set; }
-    public static bool IsAuthenticating { get; set; }
     public static string UserName { get; set; }
     public static string Role { get; set; }
 
@@ -12,11 +11,7 @@ public class AuthStateProvider : AuthenticationStateProvider
     {
         ClaimsIdentity identity;
 
-        if (IsAuthenticating)
-        {
-            return null;
-        }
-        else if (IsAuthenticated)
+        if (IsAuthenticated)
         {
             identity = new ClaimsIdentity(new List<Claim>
                         {

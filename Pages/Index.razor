@@ -1,7 +1,10 @@
 ﻿@page "/"
+@using GovOrdersApp.Data.Orders
 @inject AuthStateProvider authStateProvider
 @inject NavigationManager navManager
 @inject UserService userService
+@inject OrderService orderService
+@inject IJSRuntime jsRuntime
 
 <PageTitle>Хаб</PageTitle>
 
@@ -12,7 +15,7 @@
 		<p>Чтобы увидеть здесь что-то, нужно войти.</p>
 	</NotAuthorized>
 	<Authorized>
-		@if(role == "Role")
+		@if(role == "AdminRole")
 		{
 			<p>Вы вошли как администратор.</p>
 		}
@@ -30,20 +33,54 @@
 		}
 		else
 		{
-			<p>Вы как сюда зашли?</p>
+			<p>Вы как сюда зашли? Роль: @role</p>
 		}
+		<OrdersTable Orders="@orders" Role="@role"></OrdersTable>
 	</Authorized>
 </AuthorizeView>
 
 @code
 {
-	string role = "Guest"; 
-	protected override void OnInitialized()
+	string role = "Guest";
+	List<Order> orders;
+	LocalStorageService localStorage;
+
+	protected override async void OnInitialized()
 	{
 		if (AuthStateProvider.IsAuthenticated)
 		{
 			role = userService.GetRole();
-			navManager.NavigateTo("");
+			switch (role)
+			{
+				case "AdminRole":
+					orders = orderService.GetOrders();
+					break;
+				case "CustomerRole":
+					orders = orderService.GetOrdersByIndustry(userService.GetIndustry());
+					break;
+				case "BuilderRole":
+					orders = orderService.GetOrdersByBuilder(userService.GetId());
+					break;
+				case "DesignerRole":
+					orders = orderService.GetOrdersByDesigner(userService.GetId());
+					break;
+			}
+		}
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && !AuthStateProvider.IsAuthenticated)
+		{
+			localStorage = new LocalStorageService(jsRuntime);
+			string token = await localStorage.GetStringAsync("token");
+			if (userService.CheckToken(token))
+			{
+				AuthStateProvider.IsAuthenticated = true;
+				AuthStateProvider.UserName = userService.GetUsername();
+				AuthStateProvider.Role = userService.GetRole();
+				navManager.NavigateTo("", true);
+			}
 		}
 	}
 }

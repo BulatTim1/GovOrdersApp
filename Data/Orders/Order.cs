@@ -1,10 +1,13 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace GovOrdersApp.Data.Orders
 {
     public class Order
     {
-        [BsonId]
+        [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
         public string Industry { get; set; }
@@ -21,8 +24,8 @@ namespace GovOrdersApp.Data.Orders
         public List<OrderDocument> Documents { get; set; } = new List<OrderDocument>();
 
         [BsonIgnoreIfNull]
-        public string DesignerId { get; set; }
+        public string Designer { get; set; }
         [BsonIgnoreIfNull]
-        public string BuilderId { get; set; }
+        public string Builder { get; set; }
     }
 }
