@@ -1,4 +1,4 @@
-﻿@page "/order"
+﻿@page "/order/{Id}"
 @using GovOrdersApp.Data.Orders
 @using GovOrdersApp.Data.Users
 @using Microsoft.AspNetCore.WebUtilities
@@ -55,31 +55,25 @@
 	public string Id { get; set; } = "";
 
 	Order order;
-	List<AppUser> builders;
-	List<AppUser> designers;
+	List<AppUser> builders = new List<AppUser>();
+	List<AppUser> designers = new List<AppUser>();
 	string AuthorName = "";
 	string BuilderId = "";
 	string DesignerId = "";
 
 	protected override void OnInitialized()
 	{
-		StringValues valueFromQueryString;
-		//get our URI
-		var uri = navManager.ToAbsoluteUri(navManager.Uri);
-
-		var foundQueryParameter = QueryHelpers.ParseQuery(uri.Query).TryGetValue("id", out valueFromQueryString);
-		if (foundQueryParameter)
-		{
-			Id = valueFromQueryString;
-		}
 		order = orderService.GetOrder(Id);
-		if (order == null)
+		try
 		{
-			navManager.NavigateTo("");
+			AuthorName = userService.GetUser(order.Author).FullName;
+			builders = userService.GetUsersByRole("BuilderRole");
+			designers = userService.GetUsersByRole("DesignerRole");
 		}
-		AuthorName = userService.GetUser(order.Author).FullName;
-		builders = userService.GetUsersByRole("BuilderRole");
-		designers = userService.GetUsersByRole("DesignerRole");
+		catch 
+		{ 
+			navManager.NavigateTo(""); 
+		}
 	}
 
 	private void UpdateOrder()
