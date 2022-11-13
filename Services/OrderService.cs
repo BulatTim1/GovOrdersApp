@@ -33,6 +33,11 @@ namespace GovOrdersApp.Services
             return _context.GetOrder(id);
         }
 
+        public void UpdateOrder(Order order)
+        {
+            _context.UpdateOrder(order);
+        }
+
         public bool AddOrder(string title, string description, string industry, string author)
         {
             Order order = new Order();

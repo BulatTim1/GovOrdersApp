@@ -49,6 +49,26 @@
 		</select>
 	</label>
 	<br />
+	<input class="btn btn-primary" type="submit" value="Обновить"/>
+</form>
+<div class="d-flex flex-column">
+	Комменатрии:
+	@foreach(var mes in order.Comments)
+	{
+	<div class="d-flex flex-row">
+		<p>@userService.GetUser(mes.User).FullName</p>
+		<p>@mes.Message</p>
+		<h6>@(mes.Date.ToString("dd.MM.yyyy HH:mm"))</h6>
+	</div>
+	}
+</div>
+<form @onsubmit="AddMessage">
+	<label>
+		Текст сообщения:
+		<input @bind="Message" />
+	</label>
+	<br />
+	<input class="btn btn-primary" type="submit" placeholder="Отправить" />
 </form>
 @code {
 	[Parameter]
@@ -60,6 +80,7 @@
 	string AuthorName = "";
 	string BuilderId = "";
 	string DesignerId = "";
+	string Message = "";
 
 	protected override void OnInitialized()
 	{
@@ -78,6 +99,17 @@
 
 	private void UpdateOrder()
 	{
+		orderService.UpdateOrder(order);
+	}
 
+	private void AddMessage()
+	{
+		Comment comment = new Comment()
+			{
+				User = userService.GetId(),
+				Message = Message
+			};
+		order.Comments.Add(comment);
+		UpdateOrder();
 	}
 }
