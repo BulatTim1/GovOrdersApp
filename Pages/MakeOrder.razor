@@ -4,18 +4,14 @@
 @inject OrderService orderService
 
 <PageTitle>Создать заказ</PageTitle>
-<h3>Создать заказ</h3>
 
 <form @onsubmit="CreateOrder">
-	<label>
-		Название заказа:
+	<h3>Создать заказ</h3>
+	<label>Название заказа:</label>
 		<input @bind="title" class="form-control" />
-	</label>
 	<br />
-	<label>
-		Описание заказа:
+	<label>Описание заказа:</label>
 		<textarea @bind="description" class="form-control" />
-	</label>
 	<br />
 	<input class="btn btn-primary" type="submit" placeholder="Создать заказ" />
 </form>

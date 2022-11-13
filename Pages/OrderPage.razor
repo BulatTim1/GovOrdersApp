@@ -6,12 +6,19 @@
 @inject OrderService orderService
 @inject NavigationManager navManager
 @inject UserService userService
+@inject FileService fsService
+@inject IJSRuntime JS
 
 <PageTitle>Заказ</PageTitle>
 
-<h1>Заказ</h1>
-
+@if (role == "AdminRole" || role == "CustomerRole")
+{
 <form @onsubmit="UpdateOrder">
+	<h1>Заказ</h1>
+	@foreach (var item in errors)
+	{
+		<div class="form-control alert alert-danger">@item</div>
+	}
 	<label>
 		Название:
 		<input @bind="order.Title" />
@@ -30,7 +37,7 @@
 	<label>
 		Застройщик:
 		<select @bind="BuilderId">
-			<option value="" disabled selected hidden>Выберите застройщика</option>
+			<option value="" selected>Выберите застройщика</option>
 			@foreach (var item in builders)
 			{
 				<option value="@item.Id">@item.FullName</option>
@@ -41,7 +48,7 @@
 	<label>
 		Проектировщик:
 		<select @bind="DesignerId">
-			<option value="" disabled selected hidden>Выберите проектировщика</option>
+			<option value="" selected>Выберите проектировщика</option>
 			@foreach (var item in designers)
 			{
 				<option value="@item.Id">@item.FullName</option>
@@ -51,8 +58,12 @@
 	<br />
 	<input class="btn btn-primary" type="submit" value="Обновить"/>
 </form>
-<div class="d-flex flex-column">
-	Комменатрии:
+}
+
+
+<div>
+	<p>Комменатрии:</p>
+<div class="d-flex flex-column justify-content-between">
 	@foreach(var mes in order.Comments)
 	{
 	<div class="d-flex flex-row">
@@ -70,9 +81,100 @@
 	<br />
 	<input class="btn btn-primary" type="submit" placeholder="Отправить" />
 </form>
+</div>
+
+<div>
+	<p>Документы:</p>
+	<table class="table">
+		<thead class="thead-dark">
+			<tr>
+				<th scope="col">Документ</th>
+				<th scope="col">Утвержден</th>
+				<th scope="col">Важен</th>
+				<th scope="col">Скачать</th>
+				<th scope="col">Удалить</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var doc in order.Documents)
+			{
+				@if (role == "AdminRole" || role == "CustomerRole")
+				{
+					<tr @onchange="UpdateOrder">
+						<td>@doc.Title</td>
+						<td><input type="checkbox" @bind="doc.IsChecked" /></td>
+						<td><input type="checkbox" @bind="doc.IsRequired"/></td>
+						<td><button class="btn btn-primary" @onclick="@(() => DownloadFile(doc.FileId))">Скачать документ</button></td>
+						<td><button class="btn btn-danger" @onclick="@(() => DeleteFile(doc.FileId))">Удалить документ</button></td>
+					</tr>
+				} else {
+					<tr>
+						<td>@doc.Title</td>
+						<td><input type="checkbox" @bind="doc.IsChecked" readonly/></td>
+						<td><input type="checkbox" @bind="doc.IsRequired" readonly/></td>
+						<td><button class="btn btn-primary" @onclick="@(() => DownloadFile(doc.FileId))">Скачать документ</button></td>
+						<td></td>
+					</tr>
+				}
+			}
+		</tbody>
+	</table>
+	@if (role == "BuilderRole" || role == "DesignerRole" || role == "AdminRole")
+	{
+		<form @onsubmit="AddDocument">
+			<div class="form-group">
+				<label>Тип документа</label>
+				<select class="form-control" @bind="title">
+					<option value="" disabled selected hidden>Выберите тип документа</option>
+					@foreach (var title in IndustryTitles[order.Industry])
+					{
+						<option value="@title">@title</option>
+					}
+				</select>
+			</div>
+			<br/>
+			<InputFile OnChange="OnInputFileChange" type="file" class="form-control-file"/>
+			<input type="submit" value="Отправить файл" />
+		</form>
+	}
+</div>
 @code {
 	[Parameter]
 	public string Id { get; set; } = "";
+
+	Dictionary<string, string[]> IndustryTitles = new Dictionary<string, string[]>(){ 
+		{"Gasification", new string[] { 
+				"Письмо-обращение на имя Президента,Премьер-Министра, Минстрой РТ",
+				"Задание на проектирование",
+				"Ситуационный план (утвержденный исполкомом)",
+				"Технические условия на присоединение к газораспределительной сети (№, дата, срок действий Технических условий)",
+				"Технический паспорт (план БТИ) объекта СКБ",
+				"Технический паспорт (план БТИ) существующей котельной",
+				"АКТ обследования объекта",
+				"Технические условия на сети электроснабжение, водоснабжения, водоотведения при установке БМК",
+				"Согласование посадки котельной",
+
+				"Технико-экономические показатели (ТЭП) Газопровод-ввод низкого давления",
+				"Вводной газопровод низкого давления",
+			}
+		},
+		{"WaterSupply", new string[] {
+			"Акт обследования и выбора трассы сети водоснабжения",
+			"Акт обследования и выбор места под проектируемую скважину",
+			"Согласованный ситуационный план (М1:10000 или М1:25000) с нанесением источников воды (скважин, родников и т.п.), существующих водонапорных башен, предполагаемой трассой водопровода и места врезки в существующую сеть",
+			"План населённого пункта в М 1:1000 или М 1:500 топографическая съемка)",
+			"Технические условия на водоснабжение",
+			"Технические условия на электроснабжение (для насосной станции первого или второго подъема)",
+			"Градостроительный план земельного участка",
+			"Справка согласования с собственниками земельных участков",
+			"Документ, подтверждающий проведение межевания с присвоением кадастрового номера земельного участка под строительство водопровода и сооружений на нем",
+			"Заключение Органа Роспотребнадзора санитарно-эпидемиологической службы по отводу земельного участка и результат радиационного обследования",
+			"Сведения о наличие водозаборных скважин (родников) на территории хозяйства",
+
+			"Технико-экономические показатели (ТЭП)",
+			}
+		},
+	};
 
 	Order order;
 	List<AppUser> builders = new List<AppUser>();
@@ -81,13 +183,19 @@
 	string BuilderId = "";
 	string DesignerId = "";
 	string Message = "";
+	string role = "";
+	string title = "";
+	List<string> errors = new List<string>();
+	IBrowserFile file;
 
 	protected override void OnInitialized()
 	{
+		if (!AuthStateProvider.IsAuthenticated) navManager.NavigateTo("");
 		order = orderService.GetOrder(Id);
 		try
 		{
 			AuthorName = userService.GetUser(order.Author).FullName;
+			role = userService.GetRole();
 			builders = userService.GetUsersByRole("BuilderRole");
 			designers = userService.GetUsersByRole("DesignerRole");
 		}
@@ -99,7 +207,23 @@
 
 	private void UpdateOrder()
 	{
+		errors = new List<string>();
+		var builderUser = userService.GetUser(BuilderId);
+		var designerUser = userService.GetUser(DesignerId);
+		if (BuilderId == "" || (builderUser != null && builderUser.GetType() == new BuilderRole().GetType()))
+		{
+			order.Builder = BuilderId;
+		} else {
+			errors.Add("Строитель не может бытть назначен!");
+		}
+		if (DesignerId == "" || (designerUser != null && designerUser.GetType() == new DesignerRole().GetType()))
+		{
+			order.Designer = DesignerId;
+		} else {
+			errors.Add("Дизайнер не может бытть назначен!");
+		}
 		orderService.UpdateOrder(order);
+		StateHasChanged();
 	}
 
 	private void AddMessage()
@@ -112,4 +236,61 @@
 		order.Comments.Add(comment);
 		UpdateOrder();
 	}
+
+	private void OnInputFileChange(InputFileChangeEventArgs e)
+	{
+		file = e.File;
+		//string[] tempExt = file.Name.ToLower().Split('.');
+		//string ext = tempExt[tempExt.Length - 1];
+		//string name = Path.GetRandomFileName() + '.' + ext;
+		//if (file.ContentType.StartsWith("image/") && new string[] { "png", "jpg", "jpeg", "svg", "webp" }.Contains(ext))
+		//{
+		//}
+		this.StateHasChanged();
+
+	}
+
+	private async void AddDocument()
+	{
+		if (IndustryTitles[order.Industry].Contains(title) && file != null)
+		{
+			string fileid = await fsService.UploadFileAsync(file.Name, file.OpenReadStream(4096000000));
+			order.Documents.Add(new OrderDocument(){
+				Title = title,
+				FileId = fileid, 
+				OrderId = order.Id,
+			});
+			file = null;
+			UpdateOrder();
+		} else {
+			errors.Add("Неправильный тип файла");
+		}
+	}
+
+	private async void DeleteFile(string fileId)
+	{
+		fsService.DeleteFile(fileId);
+		order.Documents.Remove(order.Documents.Find(x => x.FileId == fileId));
+		UpdateOrder();
+	}
+	
+	private async void DownloadFile(string fileId)
+	{
+        if (role != null && role.Contains("Role") && fileId != "")
+        {
+            var filename = fsService.IsExsists(fileId);
+            if (filename != null)
+            {
+                var stream = await fsService.DownloadFileAsync(fileId);
+                await DownloadFileFromStream(filename, stream);
+            }
+        }
+	}
+
+    private async Task DownloadFileFromStream(string filename, Stream stream)
+    {
+        using var streamRef = new DotNetStreamReference(stream: stream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", filename, streamRef);
+    }
 }

@@ -11,9 +11,10 @@ namespace GovOrdersApp.Services
         static AppUser CurrentUser;
         static List<string> errors = new List<string>();
 
-        public AppUser GetUser(string id)
+        public AppUser? GetUser(string id)
         {
-            return _context.GetUser(id);
+            if (id != "") return _context.GetUser(id);
+            return null;
         }
 
         public List<AppUser> GetUsersByRole(string role)

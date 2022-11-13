@@ -6,55 +6,55 @@
 
 <PageTitle>Регистрация</PageTitle>
 
-<h3>Регистрация</h3>
 <style>
-    label {
-        margin-bottom: 1em;
+    form {
+        max-width: 45em;
+        margin: 0 auto;
     }
 </style>
 <form @onsubmit="Registration">
+<h3>Регистрация</h3>
     @foreach (var item in userService.GetErrors())
     {
         <div class="form-control alert alert-danger">@item</div>
     }
     <label>
         Логин:
-        <input required class="form-control" @bind="login" />
     </label>
+        <input required class="form-control" @bind="login" />
     <br />
     <label>
         Почта:
-        <input required class="form-control" @bind="email" />
     </label>
+        <input required class="form-control" @bind="email" />
     <br />
     <label>
         Пароль:
-        <input required class="form-control" type="password" @bind="password" />
     </label>
+        <input required class="form-control" type="password" @bind="password" />
     <br />
     <label>
         Повторите пароль:
+    </label>
         <input required class="form-control" type="password" @bind="repassword" />
-    </label>
     <br />
-    <label>
-        <select required class="form-control" @onchange="@((e) => ChangeVisibility(e))">
-            <option value="" disabled selected hidden>Выберите роль</option>
-            <option value="Customer">Заказчик</option>
-            <option value="Builder">Застройщик</option>
-            <option value="Designer">Проектировщик</option>
-        </select>
-    </label>
+    <select required class="form-control" @onchange="@((e) => ChangeVisibility(e))">
+        <option value="" disabled selected hidden>Выберите роль</option>
+        <option value="Customer">Заказчик</option>
+        <option value="Builder">Застройщик</option>
+        <option value="Designer">Проектировщик</option>
+    </select>
     <br />
-    <label hidden="@hidden">
+    @if (!hidden)
+    {
         <select class="form-control" @bind="industry">
             <option value="" disabled selected hidden>Выберите отрасль</option>
             <option value="WaterSupply">Водоснабжение</option>
             <option value="Gasification">Газификация</option>
         </select>
-    </label>
-    <br />
-    <input class="btn btn-primary" type="submit" placeholder="Зарегистрироваться"/>
+        <br />
+    }
+    <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
 </form>
 
 @code

@@ -6,27 +6,26 @@
 
 <PageTitle>Вход</PageTitle>
 
-<h3>Вход</h3>
 <style>
-    label {
-        margin-bottom: 1em;
+
+    form {
+        max-width: 45em;
+        margin: 0 auto;
     }
 </style>
 <form @onsubmit="Authentication">
+<h3>Вход</h3>
     @foreach(var item in userService.GetErrors())
     {
 	    <div class="alert alert-danger">@item</div>
     }
-    <label>
-        Логин: 
+    <label>Логин:</label>
         <input class="form-control" required @bind="login" />
-    </label>
     <br />
-    <label>
-        Пароль:
-        <input class="form-control" required type="password" @bind="password" />
-    </label>
-    <input class="form-control btn btn-primary" type="submit" placeholder="Войти" />
+    <label>Пароль:</label>
+    <input class="form-control" required type="password" @bind="password" />
+    <br />
+    <button class="btn btn-primary" type="submit">Войти</button>
 </form>
 
 @code

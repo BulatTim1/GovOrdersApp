@@ -8,36 +8,18 @@
 
 <PageTitle>Хаб</PageTitle>
 
-<h1>Хаб</h1>
+<div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto;">
 
 <AuthorizeView>
-	<NotAuthorized>
-		<p>Чтобы увидеть здесь что-то, нужно войти.</p>
+		<NotAuthorized>
+		<h1 style="text-align:center;">Хаб</h1>
+			<p style="text-align:center;">Чтобы увидеть здесь что-то, нужно войти.</p>
 	</NotAuthorized>
 	<Authorized>
-		@if(role == "AdminRole")
-		{
-			<p>Вы вошли как администратор.</p>
-		}
-		else if (role == "BuilderRole")
-		{
-			<p>Вы вошли как застройщик.</p>
-		}
-		else if (role == "CustomerRole")
-		{
-			<p>Вы вошли как заказчик.</p>
-		}
-		else if (role == "DesignerRole")
-		{
-			<p>Вы вошли как проектировщик.</p>
-		}
-		else
-		{
-			<p>Вы как сюда зашли? Роль: @role</p>
-		}
 		<OrdersTable Orders="@orders" Role="@role"></OrdersTable>
 	</Authorized>
 </AuthorizeView>
+</div>
 
 @code
 {

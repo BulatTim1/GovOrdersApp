@@ -19,7 +19,7 @@ namespace GovOrdersApp.Data.Users
         public string Password { get; set; }
 
         [BsonIgnoreIfNull]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = "User";
 
         [BsonIgnoreIfNull]
         public string Phone { get; set; }

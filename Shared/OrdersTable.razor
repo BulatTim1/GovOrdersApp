@@ -5,23 +5,27 @@
 @inject OrderService orderService
 @if (Role.Contains("Role"))
 {
-	<h3>Заказы</h3>
+	<h3 style ="text-align:center;">Заказы</h3>
 	@if(Role == "AdminRole" || Role == "CustomerRole")
 	{
 		<a class="btn btn-primary" href="makeorder">Создать заказ</a>
 	}
 	<table class="table">
+		<thead class="thead-dark">
 		<tr>
-			<th>№</th>
-			<th>Название заказа</th>
+				<th scope="col">№</th>
+				<th scope="col">Название заказа</th>
 		</tr>
+		</thead>
+		<tbody>
 		@for (int i = 0; i < Orders.Count(); i++)
 		{
 			<tr>
-				<td>@(i + 1)</td>
+				<th scope="row">@(i + 1)</th>
 				<td><a href="order/@Orders[i].Id">@Orders[i].Title</a></td>
 			</tr>
 		}
+		</tbody>
 	</table>
 }
 @code {
