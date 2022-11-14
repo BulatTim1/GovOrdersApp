@@ -19,10 +19,15 @@ namespace GovOrdersApp.Data.Users
         [BsonIgnoreIfNull]
         public string GIP { get; set; }
 
-        public override bool IsValid()
+        public override string IsValid()
         {
-            return base.IsValid() && OGRN != "" && OGRN.Length == 13 && INN != "" && INN.Length == 10 &&
-                KPP != "" && KPP.Length == 9 && Director != "" && Address != "" && GIP != "";
+            if (OGRN == "" || OGRN.Length != 13) return "Неверный ОГРН!";
+            if (INN == "" || INN.Length != 10) return "Неверный ИНН!";
+            if (KPP == "" || KPP.Length != 9) return "Неверный КПП!";
+            if (Director == "") return "Неверное ФИО директора!";
+            if (GIP == "") return "Неверное ФИО главного инженера!";
+            if (Address == "") return "Неверный адрес!";
+            return base.IsValid();
         }
     }
 }

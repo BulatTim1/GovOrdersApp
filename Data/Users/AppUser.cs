@@ -27,9 +27,12 @@ namespace GovOrdersApp.Data.Users
         [BsonIgnoreIfNull]
         public string Token { get; set; }
 
-        public virtual bool IsValid()
+        public virtual string IsValid()
         {
-            return Login != "" && Email != "" && Email.Contains('@') && Password != "";
+            if (Login == "") return "Неверный логин!";
+            if (Email == "" || !Email.Contains('@')) return "Неверный email!";
+            if (Password == "") return "Неверный пароль!";
+            return "";
         }
     }
 }

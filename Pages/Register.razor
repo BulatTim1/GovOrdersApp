@@ -6,14 +6,9 @@
 
 <PageTitle>Регистрация</PageTitle>
 
-<style>
-    form {
-        max-width: 45em;
-        margin: 0 auto;
-    }
-</style>
+<div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
+	<h3 class="align-self-center">Регистрация</h3>
 <form @onsubmit="Registration">
-<h3>Регистрация</h3>
     @foreach (var item in userService.GetErrors())
     {
         <div class="form-control alert alert-danger">@item</div>
@@ -56,7 +51,7 @@
     }
     <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
 </form>
-
+</div>
 @code
 {
     private string login = "";

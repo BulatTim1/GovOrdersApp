@@ -15,10 +15,14 @@ namespace GovOrdersApp.Data.Users
         [BsonIgnoreIfNull]
         public string Address { get; set; }
 
-        public override bool IsValid()
+        public override string IsValid()
         {
-            return base.IsValid() && OGRN != "" && OGRN.Length == 13 && INN != "" && INN.Length == 10 &&
-                KPP != "" && KPP.Length == 9 && Manager != "" && Address != "";
+            if (OGRN == "" || OGRN.Length != 13) return "Неверный ОГРН!";
+            if (INN == "" || INN.Length != 10) return "Неверный ИНН!";
+            if (KPP == "" || KPP.Length != 9) return "Неверный КПП!";
+            if (Manager == "") return "Неверное ФИО руководителя!";
+            if (Address == "") return "Неверный адрес!";
+            return base.IsValid();
         }
     }
 }

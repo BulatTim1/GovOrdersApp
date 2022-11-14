@@ -167,12 +167,13 @@ namespace GovOrdersApp.Services
 
         public bool UpdateUser(AppUser user)
         {
-            if (user.IsValid())
+            string error = user.IsValid();
+            if (error == "")
             {
                 _context.UpdateUser(user);
                 return true;
             }
-            errors.Add("Введите верные значения");
+            errors.Add(error);
             return false;
         }
         

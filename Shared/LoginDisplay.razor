@@ -1,10 +1,10 @@
 ﻿<AuthorizeView>
-    <Authorized>
-        <a href="profile">Здравствуйте, @context.User.Identity?.Name!</a>
-        <a href="logout">Выйти</a>
-    </Authorized>
-    <NotAuthorized>
-        <a href="register">Зарегистрироваться</a>
-        <a href="login">Войти</a>
-    </NotAuthorized>
+		<Authorized>
+			<a href="profile">Здравствуйте, @context.User.Identity?.Name!</a>
+			<a href="logout">Выйти</a>
+		</Authorized>
+		<NotAuthorized>
+			<a href="register">Зарегистрироваться</a>
+			<a href="login">Войти</a>
+		</NotAuthorized>
 </AuthorizeView>

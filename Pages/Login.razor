@@ -5,16 +5,9 @@
 @inject IJSRuntime jsRuntime
 
 <PageTitle>Вход</PageTitle>
-
-<style>
-
-    form {
-        max-width: 45em;
-        margin: 0 auto;
-    }
-</style>
+<div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
+	<h3 class="align-self-center">Авторизация</h3>
 <form @onsubmit="Authentication">
-<h3>Вход</h3>
     @foreach(var item in userService.GetErrors())
     {
 	    <div class="alert alert-danger">@item</div>
@@ -27,7 +20,7 @@
     <br />
     <button class="btn btn-primary" type="submit">Войти</button>
 </form>
-
+</div>
 @code
 {
     private string login = "";

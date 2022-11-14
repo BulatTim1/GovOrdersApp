@@ -8,9 +8,10 @@ namespace GovOrdersApp.Data.Users
         [BsonIgnoreIfNull]
         public string Position { get; set; }
 
-        public override bool IsValid()
+        public override string IsValid()
         {
-            return base.IsValid() && Industry != "";
+            if (Industry == "") return "Неверная отрасль!";
+            return base.IsValid();
         }
     }
 }
