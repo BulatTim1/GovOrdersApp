@@ -9,7 +9,6 @@ namespace GovOrdersApp.Services
     {
         static UsersContext _context = new UsersContext();
         static AppUser CurrentUser;
-        static List<string> errors = new List<string>();
 
         public AppUser? GetUser(string id)
         {
@@ -22,14 +21,13 @@ namespace GovOrdersApp.Services
             return _context.GetUsersByRole(role);
         }
         
-        public bool Authorization(string login, string password)
+        public string Authorization(string login, string password)
         {
             login = login.Trim();
             password = password.Trim();
             if (login == "" || password == "")
             {
-                errors.Add("Поля не должны быть пустыми!");
-                return false;
+                return "Поля не должны быть пустыми!";
             }
             password = sha256_hash(password);
             var res = _context.Authenticate(login, password);
@@ -38,16 +36,12 @@ namespace GovOrdersApp.Services
                 res.Token = Guid.NewGuid().ToString();
                 _context.UpdateUser(res);
                 CurrentUser = res;
-                return true;
+                return "";
             } 
-            else
-            {
-                errors.Add("Неверный логин или пароль");
-            }
-            return false;
+            return "Неверный логин или пароль";
         }
 
-        public bool Registration(string login, string email, string password, string repassword, string role, string industry = "")
+        public string Registration(string login, string email, string password, string repassword, string role, string industry = "")
         {
             login = login.Trim();
             email = email.Trim();
@@ -55,13 +49,11 @@ namespace GovOrdersApp.Services
             repassword = repassword.Trim();
             if (login == "" || password == "" || email == "" || repassword == "")
             {
-                errors.Add("Поля не должны быть пустыми!");
-                return false;
+                return "Поля не должны быть пустыми!";
             }
             if (password != repassword)
             {
-                errors.Add("Пароли не совпадают");
-                return false;
+                return "Пароли не совпадают";
             }
             password = sha256_hash(password);
             AppUser newUser;
@@ -70,8 +62,7 @@ namespace GovOrdersApp.Services
                 case "Customer":
                     if (industry == "")
                     {
-                        errors.Add("Выберите отрасль!");
-                        return false;
+                        return "Выберите отрасль!";
                     }
                     newUser = new CustomerRole()
                     {
@@ -85,8 +76,7 @@ namespace GovOrdersApp.Services
                     newUser = new DesignerRole();
                     break;
                 default:
-                    errors.Add("Выберите роль!");
-                    return false;
+                    return "Выберите роль!";
             }
             newUser.Login = login;
             newUser.Password = password;
@@ -97,11 +87,10 @@ namespace GovOrdersApp.Services
                 CurrentUser = newUser;
                 newUser.Token = Guid.NewGuid().ToString();
                 _context.UpdateUser(newUser);
-                return true;
+                return "";
             } catch
             {
-                errors.Add("Такой пользователь уже существует!");
-                return false;
+                return "Такой пользователь уже существует!";
             }
         }
 
@@ -140,13 +129,6 @@ namespace GovOrdersApp.Services
             return "Guest";
         }
 
-        public List<string> GetErrors()
-        {
-            List<string> temp = new List<string>(errors);
-            errors.Clear();
-            return temp;
-        }
-
         public string GetIndustry()
         {
             if (CurrentUser != null && CurrentUser.GetType() == typeof(CustomerRole))
@@ -165,42 +147,56 @@ namespace GovOrdersApp.Services
             return "";
         }
 
-        public bool UpdateUser(AppUser user)
+        public string UpdateUser(AppUser user)
         {
             string error = user.IsValid();
             if (error == "")
             {
                 _context.UpdateUser(user);
-                return true;
+                return "";
             }
-            errors.Add(error);
-            return false;
+            return error;
         }
-        
-        public bool UpdatePassword(AppUser user, string oldPassword, string newPassword, string renewPassword)
+
+        public string UpdatePassword(AppUser user, string newPassword, string renewPassword)
         {
             newPassword = newPassword.Trim();
             renewPassword = renewPassword.Trim();
             if (newPassword == "")
             {
-                errors.Add("Пароль не должен быть пустым!");
-                return false;
+                return "Пароль не должен быть пустым!";
             }
             if (newPassword != renewPassword)
             {
-                errors.Add("Пароли не совпадают");
-                return false;
+                return "Пароли не совпадают";
+            }
+            newPassword = sha256_hash(newPassword);
+            user.Password = newPassword;
+            _context.UpdateUser(user);
+            return "";
+        }
+
+        public string UpdatePassword(AppUser user, string oldPassword, string newPassword, string renewPassword)
+        {
+            newPassword = newPassword.Trim();
+            renewPassword = renewPassword.Trim();
+            if (newPassword == "")
+            {
+                return "Пароль не должен быть пустым!";
+            }
+            if (newPassword != renewPassword)
+            {
+                return "Пароли не совпадают";
             }
             newPassword = sha256_hash(newPassword);
             oldPassword = sha256_hash(oldPassword);
             if (oldPassword != user.Password)
             {
-                errors.Add("Неверный пароль");
-                return false;
+                return "Неверный пароль";
             }
             user.Password = newPassword;
             _context.UpdateUser(user);
-            return true;
+            return "";
         }
 
         public bool CheckToken(string token)

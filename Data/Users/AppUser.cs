@@ -32,6 +32,7 @@ namespace GovOrdersApp.Data.Users
             if (Login == "") return "Неверный логин!";
             if (Email == "" || !Email.Contains('@')) return "Неверный email!";
             if (Password == "") return "Неверный пароль!";
+            if (Phone.Length > 21) return "Неправильный телефон!";
             return "";
         }
     }

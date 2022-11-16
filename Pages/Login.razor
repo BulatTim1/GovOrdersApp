@@ -2,16 +2,16 @@
 @inject AuthStateProvider authStateProvider
 @inject UserService userService
 @inject NavigationManager navManager
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime JS
 
 <PageTitle>Вход</PageTitle>
 <div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
 	<h3 class="align-self-center">Авторизация</h3>
 <form @onsubmit="Authentication">
-    @foreach(var item in userService.GetErrors())
-    {
-	    <div class="alert alert-danger">@item</div>
-    }
+	@if (Error != "")
+	{
+		<div class="form-control alert alert-danger">@Error</div>
+	}
     <label>Логин:</label>
         <input class="form-control" required @bind="login" />
     <br />
@@ -26,31 +26,34 @@
     private string login = "";
     private string password = "";
     LocalStorageService localStorage;
-	
+    string Error = "";
+
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+
+    private async void AddError(string error)
+    {
+        Error = error;
+        StateHasChanged();
+        await JS.InvokeVoidAsync("scrollToTopfunc");
+    }
+
     private void Authentication()
     {
-        if (userService.Authorization(login, password))
+        var res = userService.Authorization(login, password);
+        if (res == "")
         {
-            localStorage = new LocalStorageService(jsRuntime);
-			localStorage.SetStringAsync("token", userService.GetToken());
+            localStorage = new LocalStorageService(JS);
+            localStorage.SetStringAsync("token", userService.GetToken());
             AuthStateProvider.IsAuthenticated = true;
             AuthStateProvider.UserName = userService.GetUsername();
             AuthStateProvider.Role = userService.GetRole();
             navManager.NavigateTo("");
+            authStateProvider.NotifyAuthenticationStateChanged();
+        } else 
+        {
+            AddError(res);
         }
-        //if (!isAuthenticated.HasValue)
-        //{
-        //    AuthStateProvider.IsAuthenticating = true;
-        //}
-        //else
-        //{
-        //    AuthStateProvider.IsAuthenticating = false;
-        //    AuthStateProvider.IsAuthenticated = isAuthenticated.Value;
-        //}
-
-        authStateProvider.NotifyAuthenticationStateChanged();
     }
 }

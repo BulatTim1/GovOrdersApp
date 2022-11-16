@@ -1,126 +1,193 @@
 ﻿@page "/profile"
+@page "/profile/{RequestedUser}"
 @using GovOrdersApp.Data.Users
 @inject NavigationManager navManager
 @inject UserService userService
 @inject IJSRuntime JS
 
-<PageTitle>Профиль @user.Login</PageTitle>
+<PageTitle>Профиль @User.Login</PageTitle>
 <div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
-	<h3 class="align-self-center">Профиль @user.Login</h3>
-<form @onsubmit="UpdateUser">
-	@foreach (var item in userService.GetErrors())
-	{
-		<div class="form-control alert alert-danger">@item</div>
-	}
-			<label>Почта: @user.Email</label>
-			<br />
-			<label>Роль: @role</label>
-			<br />
-			<label>Телефон:</label>
-			<input class="form-control" @bind="user.Phone" type="tel" />
-			<br />
+	<h3 class="align-self-center">Профиль @User.Login</h3>
+	<form @onsubmit="UpdateUser">
+		@if (Error != "")
+		{
+			<div class="form-control alert alert-danger">@Error</div>
+		}
+		<label>Почта: @User.Email</label>
+		<br />
+		<label>Роль: @RolesTitle[Role]</label>
+		<br />
+		<label>Телефон:</label>
+		<input class="form-control" @bind="User.Phone" type="tel" />
+		<br />
+		<div class="border-bottom mb-3"></div>
+		@if (!Requested)
+		{
 			<label>Старый пароль:</label>
-			<input class="form-control" @bind="oldPassword" />
+			<input class="form-control" @bind="OldPassword" />
 			<br />
-			<label>Новый пароль:</label>
-			<input class="form-control" @bind="newPassword" />
-			<br />
-			<label>Повторите новый пароль:</label>
-			<input class="form-control" @bind="renewPassword" />
-			<br />
-	@if (role == "CustomerRole")
-	{
+		}
+		<label>Новый пароль:</label>
+		<input class="form-control" @bind="NewPassword" />
+		<br />
+		<label>Повторите новый пароль:</label>
+		<input class="form-control" @bind="ReNewPassword" />
+		<br />
+		@if (Role == "CustomerRole" || (Requested && User.GetType() == new CustomerRole().GetType()))
+		{
+			<div class="border-bottom mb-3"></div>
 			<label>ФИО:</label>
-			<input class="form-control" @bind="((CustomerRole)user).FullName" />
+			<input class="form-control" @bind="((CustomerRole)User).FullName" />
 			<br />
 			<label>Должность:</label>
-			<input class="form-control" @bind="((CustomerRole)user).Position" />
+			<input class="form-control" @bind="((CustomerRole)User).Position" />
 			<br />
 			<label>Отрасль:</label>
-			<select class="form-select" @bind="((CustomerRole)user).Industry">
-				<option value="WaterSupply">Водоснабжение</option>
-				<option value="Gasification">Газификация</option>
+			<select class="form-select" @bind="((CustomerRole)User).Industry">
+				@foreach (var item in Industries)
+				{
+					@if (item.Key == ((CustomerRole)User).Industry)
+					{
+						<option value="@item.Key" selected>@item.Value</option>
+					}
+					else
+					{
+						<option value="@item.Key">@item.Value</option>
+					}
+				}
 			</select>
 			<br />
-	}
-	else if (role == "BuilderRole")
-	{
+		}
+		else if (Role == "BuilderRole" || (Requested && User.GetType() == new BuilderRole().GetType()))
+		{
+			<div class="border-bottom mb-3"></div>
 			<label>Название организации:</label>
-			<input class="form-control" @bind="((BuilderRole)user).FullName" />
-		<br />
-		<label>ИНН:</label>
-				<input class="form-control" @bind="((BuilderRole)user).INN" />
-		<br />
-		<label>КПП:</label>
-			<input class="form-control" @bind="((BuilderRole)user).KPP" />
-		<br />
+			<input class="form-control" @bind="((BuilderRole)User).FullName" />
+			<br />
+			<label>ИНН:</label>
+			<input class="form-control" @bind="((BuilderRole)User).INN" />
+			<br />
+			<label>КПП:</label>
+			<input class="form-control" @bind="((BuilderRole)User).KPP" />
+			<br />
 			<label>ОГРН:</label>
-			<input class="form-control" @bind="((BuilderRole)user).OGRN" />
-		<br />
-		<label>Адрес:</label>
-				<input class="form-control" @bind="((BuilderRole)user).Address" />
-		<br />
-		<label>ФИО руководителя:</label>
-				<input class="form-control" @bind="((BuilderRole)user).Manager" />
-		<br />
-	}
-	else if (role == "DesignerRole")
-	{
-		<label>Название организации:</label>
-			<input class="form-control" @bind="((DesignerRole)user).FullName" />
-		<br />
-		<label>ИНН:</label>
-				<input class="form-control" @bind="((DesignerRole)user).INN" />
-		<br />
-		<label>КПП:</label>
-				<input class="form-control" @bind="((DesignerRole)user).KPP" />
-		<br />
-		<label>ОГРН:</label>
-				<input class="form-control" @bind="((DesignerRole)user).OGRN" />
-		<br />
-		<label>Адрес:</label>
-				<input class="form-control" @bind="((DesignerRole)user).Address" />
-		<br />
-		<label>ФИО руководителя:</label>
-				<input class="form-control" @bind="((DesignerRole)user).Director" />
-		<br />
-		<label>Главный инженер проекта:</label>
-				<input class="form-control" @bind="((DesignerRole)user).GIP" />
-		<br />
-	}
-	<input class="btn btn-primary" type="submit" placeholder="Обновить профиль" />
-</form>
-	</div>
+			<input class="form-control" @bind="((BuilderRole)User).OGRN" />
+			<br />
+			<label>Адрес:</label>
+			<input class="form-control" @bind="((BuilderRole)User).Address" />
+			<br />
+			<label>ФИО руководителя:</label>
+			<input class="form-control" @bind="((BuilderRole)User).Manager" />
+			<br />
+		}
+		else if (Role == "DesignerRole" || (Requested && User.GetType() == new DesignerRole().GetType()))
+		{
+			<div class="border-bottom mb-3"></div>
+			<label>Название организации:</label>
+			<input class="form-control" @bind="((DesignerRole)User).FullName" />
+			<br />
+			<label>ИНН:</label>
+			<input class="form-control" @bind="((DesignerRole)User).INN" />
+			<br />
+			<label>КПП:</label>
+			<input class="form-control" @bind="((DesignerRole)User).KPP" />
+			<br />
+			<label>ОГРН:</label>
+			<input class="form-control" @bind="((DesignerRole)User).OGRN" />
+			<br />
+			<label>Адрес:</label>
+			<input class="form-control" @bind="((DesignerRole)User).Address" />
+			<br />
+			<label>ФИО руководителя:</label>
+			<input class="form-control" @bind="((DesignerRole)User).Director" />
+			<br />
+			<label>Главный инженер проекта:</label>
+			<input class="form-control" @bind="((DesignerRole)User).GIP" />
+			<br />
+		}
+		<input class="btn btn-primary" type="submit" placeholder="Обновить профиль" />
+	</form>
+</div>
 @code {
-	AppUser user;
-	string role = "";
-	string oldPassword = "";
-	string newPassword = "";
-	string renewPassword = "";
+	Dictionary<string, string> Industries = new Dictionary<string, string>(){
+		{ "WaterSupply", "Водоснабжение"},
+		{ "Gasification", "Газификация"}
+	};
+
+	Dictionary<string, string> RolesTitle = new Dictionary<string, string>(){
+		{ "AdminRole", "Администратор"},
+		{ "CustomerRole", "Заказчик"},
+		{ "BuilderRole", "Застройщик"},
+		{ "DesignerRole", "Проектировщик"},
+		{ "AppUser", "Пользователь без роли"}
+	};
+
+	[Parameter]
+	public string? RequestedUser { get; set; }
+
+	AppUser User;
+	string Role = "";
+	string OldPassword = "";
+	string NewPassword = "";
+	string ReNewPassword = "";
+	string Error = "";
+	bool Requested = false;
+
 	protected override void OnInitialized()
 	{
 		if (!AuthStateProvider.IsAuthenticated)
 		{
 			navManager.NavigateTo("login");
 		}
-		user = userService.GetCurrentUser();
-		role = userService.GetRole();
+		User = userService.GetCurrentUser();
+		Role = userService.GetRole();
+		if (RequestedUser != null && Role == "AdminRole")
+		{
+			Requested = true;
+			try
+			{
+				User = userService.GetUser(RequestedUser);
+			}
+			catch (Exception ex)
+			{
+				navManager.NavigateTo("");
+			}
+		}
+	}
+
+	private async void AddError(string error)
+	{
+		Error = error;
+		StateHasChanged();
+		await JS.InvokeVoidAsync("scrollToTopfunc");
 	}
 
 	private async void UpdateUser()
 	{
-		if (oldPassword != "" && newPassword != "" && renewPassword != "")
+		if (OldPassword != "" && NewPassword != "" && ReNewPassword != "")
 		{
 			UpdatePassword();
 		}
-		if (userService.UpdateUser(user)) navManager.NavigateTo("");
-		await JS.InvokeVoidAsync("scrollToTopfunc");
+		string res = userService.UpdateUser(User);
+
+		if (res == "") navManager.NavigateTo("");
+		else AddError(res);
 	}
 	private void UpdatePassword()
 	{
-		if(userService.UpdatePassword(user, oldPassword, newPassword, renewPassword))
+		string res = "";
+		if (Requested)
+		{
+			res = userService.UpdatePassword(User, NewPassword, ReNewPassword);
+		} else {
+			res = userService.UpdatePassword(User, OldPassword, NewPassword, ReNewPassword);
+		}
+		if (res == "")
 		{
 			navManager.NavigateTo("");
+		} else 
+		{
+			AddError(res);
 		}
 	}
 }

@@ -5,9 +5,9 @@
 html, body {
     font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
-h3,h4 {
+/*h3,h4 {
     font-family: 'Abel', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
+}*/
 
 h1:focus {
     outline: none;
@@ -37,6 +37,10 @@ a, .btn-link {
 
 .validation-message {
     color: red;
+}
+
+.block {
+    border-bottom: 1px solid #000;
 }
 
 #blazor-error-ui {
@@ -91,8 +95,7 @@ form label {
         font-size: 1.3em;
        margin-left: 5em;
     }
-textarea.form-control {
-    min-height: auto;
-}
-#3AB6EC {
-}
+/*textarea.form-control {
+}*/
+/*#3AB6EC {
+}*/

@@ -2,103 +2,108 @@
 @inject AuthStateProvider authStateProvider
 @inject UserService userService
 @inject NavigationManager navManager
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime JS
 
 <PageTitle>Регистрация</PageTitle>
 
 <div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
 	<h3 class="align-self-center">Регистрация</h3>
-<form @onsubmit="Registration">
-    @foreach (var item in userService.GetErrors())
-    {
-        <div class="form-control alert alert-danger">@item</div>
-    }
-    <label>
-        Логин:
-    </label>
-        <input required class="form-control" @bind="login" />
-    <br />
-    <label>
-        Почта:
-    </label>
-        <input required class="form-control" @bind="email" />
-    <br />
-    <label>
-        Пароль:
-    </label>
-        <input required class="form-control" type="password" @bind="password" />
-    <br />
-    <label>
-        Повторите пароль:
-    </label>
-        <input required class="form-control" type="password" @bind="repassword" />
-    <br />
-    <select required class="form-control" @onchange="@((e) => ChangeVisibility(e))">
-        <option value="" disabled selected hidden>Выберите роль</option>
-        <option value="Customer">Заказчик</option>
-        <option value="Builder">Застройщик</option>
-        <option value="Designer">Проектировщик</option>
-    </select>
-    <br />
-    @if (!hidden)
-    {
-        <select class="form-control" @bind="industry">
-            <option value="" disabled selected hidden>Выберите отрасль</option>
-            <option value="WaterSupply">Водоснабжение</option>
-            <option value="Gasification">Газификация</option>
-        </select>
-        <br />
-    }
-    <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
-</form>
+	<form @onsubmit="Registration">
+		@if (Error != "")
+		{
+			<div class="form-control alert alert-danger">@Error</div>
+		}
+		<label>
+			Логин:
+		</label>
+		<input required class="form-control" @bind="login" />
+		<br />
+		<label>
+			Почта:
+		</label>
+		<input required class="form-control" @bind="email" />
+		<br />
+		<label>
+			Пароль:
+		</label>
+		<input required class="form-control" type="password" @bind="password" />
+		<br />
+		<label>
+			Повторите пароль:
+		</label>
+		<input required class="form-control" type="password" @bind="repassword" />
+		<br />
+		<select required class="form-control" @onchange="@((e) => ChangeVisibility(e))">
+			<option value="" disabled selected hidden>Выберите роль</option>
+			<option value="Customer">Заказчик</option>
+			<option value="Builder">Застройщик</option>
+			<option value="Designer">Проектировщик</option>
+		</select>
+		<br />
+		@if (!hidden)
+		{
+			<select class="form-control" @bind="industry">
+				<option value="" disabled selected hidden>Выберите отрасль</option>
+				<option value="WaterSupply">Водоснабжение</option>
+				<option value="Gasification">Газификация</option>
+			</select>
+			<br />
+		}
+		<button class="btn btn-primary" type="submit">Зарегистрироваться</button>
+	</form>
 </div>
 @code
 {
-    private string login = "";
-    private string email = "";
-    private string password = "";
-    private string repassword = "";
-    private string role = "";
-    private string industry = "";
-    private bool hidden = true;
-    LocalStorageService localStorage;
+	private string login = "";
+	private string email = "";
+	private string password = "";
+	private string repassword = "";
+	private string role = "";
+	private string industry = "";
+	private bool hidden = true;
+	LocalStorageService localStorage;
+	string Error = "";
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-    private void ChangeVisibility(ChangeEventArgs e)
-    {
-        role = (string) e.Value;
-        if (role == "Customer")
-        {
-            hidden = false;
-        } else 
-        {
-            hidden = true;
-        }
-    }
+	private async void AddError(string error)
+	{
+		Error = error;
+		StateHasChanged();
+		await JS.InvokeVoidAsync("scrollToTopfunc");
+	}
 
-    private void Registration()
-    {
-        if (userService.Registration(login, email, password, repassword, role, industry))
-        {
-            localStorage = new LocalStorageService(jsRuntime);
-            localStorage.SetStringAsync("token", userService.GetToken());
-            AuthStateProvider.IsAuthenticated = true;
-            AuthStateProvider.UserName = userService.GetUsername();
-            AuthStateProvider.Role = userService.GetRole();
-            navManager.NavigateTo("");
-        }
-        //if (!isAuthenticated.HasValue)
-        //{
-        //    AuthStateProvider.IsAuthenticating = true;
-        //}
-        //else
-        //{
-        //    AuthStateProvider.IsAuthenticating = false;
-        //    AuthStateProvider.IsAuthenticated = isAuthenticated.Value;
-        //}
+	private void ChangeVisibility(ChangeEventArgs e)
+	{
+		role = (string)e.Value;
+		if (role == "Customer")
+		{
+			hidden = false;
+		}
+		else
+		{
+			hidden = true;
+		}
+	}
 
-        authStateProvider.NotifyAuthenticationStateChanged();
-    }
+	private void Registration()
+	{
+		var res = userService.Registration(login, email, password, repassword, role, industry);
+		if (res == "")
+		{
+			localStorage = new LocalStorageService(JS);
+			localStorage.SetStringAsync("token", userService.GetToken());
+			AuthStateProvider.IsAuthenticated = true;
+			AuthStateProvider.UserName = userService.GetUsername();
+			AuthStateProvider.Role = userService.GetRole();
+			navManager.NavigateTo("");
+			authStateProvider.NotifyAuthenticationStateChanged();
+		}
+		else
+		{
+			AddError(res);
+		}
+
+	}
 }

@@ -12,24 +12,24 @@
 <PageTitle>Заказ</PageTitle>
 
 <div class="d-flex flex-column justify-content-between" style="max-width: 45em; margin: 0 auto; padding-bottom: 5em;">
-	<h3 class="align-self-center mb-3 font-weight-bold">Заказ @order.Title</h3>
-	@if (role == "AdminRole" || role == "CustomerRole")
+	<h3 class="align-self-center mb-3 font-weight-bold">Заказ @Order.Title</h3>
+	@if (CurrentUserRole == "AdminRole" || CurrentUserRole == "CustomerRole")
 	{
-		<form class="pb-3" @onsubmit="UpdateOrder">
-			@foreach (var item in errors)
+		<form class="pb-3 mb-3 border-bottom" @onsubmit="UpdateOrder">
+			@if (Error != "")
 			{
-				<div class="form-control alert alert-danger">@item</div>
+				<div class="form-control alert alert-danger">@Error</div>
 			}
 			<label>
 				<p></p>Название:
 			</label>
-			<input class="form-control" @bind="order.Title" />
+			<input class="form-control" @bind="Order.Title" />
 
 			<br />
 			<label>
 				Описание:
 			</label>
-			<textarea class="form-control" @bind="order.Description" />
+			<textarea rows=10 style="resize: none; " class="form-control" @bind="Order.Description" />
 
 			<br />
 			<label>
@@ -40,8 +40,8 @@
 			<label>
 				Застройщик:
 			</label>
-			<select class="form-select" @bind="order.Builder">
-				@if (order.Builder == "")
+			<select class="form-select" @bind="Order.Builder">
+				@if (Order.Builder == "")
 				{
 					<option value="" selected>Выберите застройщика</option>
 				}
@@ -49,9 +49,9 @@
 				{
 					<option value="">Выберите застройщика</option>
 				}
-				@foreach (var item in builders)
+				@foreach (var item in Builders)
 				{
-					@if (item.Id == order.Builder)
+					@if (item.Id == Order.Builder)
 					{
 						<option value="@item.Id" selected>@item.FullName</option>
 					}
@@ -65,8 +65,8 @@
 			<label>
 				Проектировщик:
 			</label>
-			<select class="form-select" @bind="order.Designer">
-				@if (order.Designer == "")
+			<select class="form-select" @bind="Order.Designer">
+				@if (Order.Designer == "")
 				{
 					<option value="" selected>Выберите проектировщика</option>
 				}
@@ -74,9 +74,9 @@
 				{
 					<option value="">Выберите проектировщика</option>
 				}
-				@foreach (var item in designers)
+				@foreach (var item in Designers)
 				{
-					@if (item.Id == order.Designer)
+					@if (item.Id == Order.Designer)
 					{
 						<option value="@item.Id" selected>@item.FullName</option>
 					}
@@ -87,37 +87,85 @@
 				}
 			</select>
 			<br />
+			<label>
+				Отрасль:
+			</label>
+			@if (CurrentUserRole == "AdminRole")
+			{
+				<select class="form-select" @bind="Order.Industry">
+					@if (Order.Industry == "")
+					{
+						<option value="" selected>Выберите отрасль</option>
+					}
+					else
+					{
+						<option value="">Выберите отрасль</option>
+					}
+					@foreach (var item in Industries)
+					{
+						@if (item.Key == Order.Industry)
+						{
+							<option value="@item.Key" selected>@item.Value</option>
+						}
+						else
+						{
+							<option value="@item.Key">@item.Value</option>
+						}
+					}
+				</select>
+			}
+			else
+			{
+				<p>@Order.Industry</p>
+			}
+			<br />
 			<input class="form-control btn btn-primary" type="submit" value="Обновить" />
 		</form>
+	}
+	else
+	{
+		<div class="d-flex flex-column justify-content-between pb-3 mb-3 border-bottom">
+			<p>Название: @Order.Title</p>
+			<p>Описание: @Order.Description</p>
+			<p>Закачик: @AuthorName</p>
+			<p>Проектировщик: @(Designers.Where(x => x.Id == Order.Designer).FirstOrDefault()?.FullName)</p>
+			<p>Заказчик: @(Builders.Where(x => x.Id == Order.Builder).FirstOrDefault()?.FullName)</p>
+		</div>
 	}
 
 
 	<h3 class="align-self-center mb-3">Комментарии</h3>
-	<div class="d-flex flex-column justify-content-between mb-3">
-		@foreach (var mes in order.Comments)
+	<div class="d-flex flex-column justify-content-between pb-3">
+		@foreach (var mes in Order.Comments)
 		{
 			<div class="card mb-3">
-				<div class="card-body">
-					<h5 class="card-title">@userService.GetUser(mes.User).FullName</h5>
-					<h6 class="card-subtitle form-text pb-3">@(mes.Date.ToString("dd.MM.yyyy HH:mm"))</h6>
-					<p class="card-text">@mes.Message</p>
+				<div class="card-body d-flex flex-row justify-content-between">
+					<div>
+						<h5 class="card-title">@userService.GetUser(mes.User).FullName</h5>
+						<h6 class="card-subtitle form-text pb-3">@(mes.Date.ToString("dd.MM.yyyy HH:mm"))</h6>
+						<p class="card-text">@mes.Message</p>
+					</div>
+					@if (CurrentUserRole == "AdminRole" || mes.User == CurrentUserId)
+					{
+						<div class="align-self-center">
+							<button class="btn btn-primary" @onclick="@(() => DeleteComment(mes))">Удалить</button>
+						</div>
+					}
 				</div>
 			</div>
 		}
 	</div>
-	<h4 class="align-self-center mb-3">Отправить комментарий</h4>
-	<form @onsubmit="AddMessage">
-		<label>
-			Текст комменатрия:
-		</label>
-		<input class="form-control" @bind="Message" />
+
+	<h4 class="align-self-center">Отправить комментарий</h4>
+	<form class="pb-3 mb-3 border-bottom" @onsubmit="AddMessage">
+		<input class="form-control" @bind="CommentMessage" placeholder="Комментарий" />
 		<br />
 		<input class="form-control btn btn-primary" type="submit" placeholder="Добавить комментарий" />
 	</form>
 
 	<h3 class="align-self-center mb-3">Документы</h3>
 
-	<div class="d-flex flex-column justify-content-between mb-3">
+	<div class="d-flex flex-column justify-content-between pb-3">
 		<table class="table mb-3">
 			<thead class="thead-dark">
 				<tr>
@@ -129,9 +177,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach (var doc in order.Documents)
+				@foreach (var doc in Order.Documents)
 				{
-					@if (role == "AdminRole" || role == "CustomerRole")
+					@if (CurrentUserRole == "AdminRole" || CurrentUserRole == "CustomerRole")
 					{
 						<tr class="@((doc.IsRequired) ? "bg-required" : (doc.IsChecked) ? "bg-checked" : "")">
 							<td>@doc.Title</td>
@@ -155,17 +203,20 @@
 			</tbody>
 		</table>
 	</div>
-	<h4 class="align-self-center mb-3">Отправить документ</h4>
-	@if (role == "BuilderRole" || role == "DesignerRole" || role == "AdminRole")
+	<h4 class="align-self-center">Отправить документ</h4>
+	@if (CurrentUserRole == "BuilderRole" || CurrentUserRole == "DesignerRole" || CurrentUserRole == "AdminRole")
 	{
 		<form @onsubmit="AddDocument">
 			<div class="form-group">
 				<label>Тип документа</label>
-				<select class="form-control" @bind="title">
+				<select class="form-select" @bind="DocumentTitle">
 					<option value="" disabled selected hidden>Выберите тип документа</option>
-					@foreach (var title in IndustryTitles[order.Industry])
+					@foreach ((string, string) title in DocumentTitles[Order.Industry])
 					{
-						<option value="@title">@(title.Length > 67 ? title.Substring(0, 67) + "..." : title)</option>
+						if (title.Item2.Contains(CurrentUserRole) || CurrentUserRole == "AdminRole")
+						{
+							<option value="@title.Item1">@(title.Item1.Length > 67 ? title.Item1.Substring(0, 67) + "..." : title.Item1)</option>
+						}
 					}
 				</select>
 			</div>
@@ -180,60 +231,67 @@
 	[Parameter]
 	public string Id { get; set; } = "";
 
-	Dictionary<string, string[]> IndustryTitles = new Dictionary<string, string[]>(){
-		{"Gasification", new string[] {
-				"Письмо-обращение на имя Президента,Премьер-Министра, Минстрой РТ",
-				"Задание на проектирование",
-				"Ситуационный план (утвержденный исполкомом)",
-				"Технические условия на присоединение к газораспределительной сети (№, дата, срок действий Технических условий)",
-				"Технический паспорт (план БТИ) объекта СКБ",
-				"Технический паспорт (план БТИ) существующей котельной",
-				"АКТ обследования объекта",
-				"Технические условия на сети электроснабжение, водоснабжения, водоотведения при установке БМК",
-				"Согласование посадки котельной",
+	Dictionary<string, string> Industries = new Dictionary<string, string>(){
+		{ "WaterSupply", "Водоснабжение"},
+		{ "Gasification", "Газификация"}
+	};
 
-				"Технико-экономические показатели (ТЭП) Газопровод-ввод низкого давления",
-				"Вводной газопровод низкого давления",
+	Dictionary<string, (string, string)[]> DocumentTitles = new Dictionary<string, (string, string)[]>(){
+		{"Gasification", new (string, string)[] {
+				("Письмо-обращение на имя Президента,Премьер-Министра, Минстрой РТ", "BuilderRole"),
+				("Задание на проектирование", "BuilderRole"),
+				("Ситуационный план (утвержденный исполкомом)", "BuilderRole"),
+				("Технические условия на присоединение к газораспределительной сети (№, дата, срок действий Технических условий)", "BuilderRole"),
+				("Технический паспорт (план БТИ) объекта СКБ", "BuilderRole"),
+				("Технический паспорт (план БТИ) существующей котельной", "BuilderRole"),
+				("АКТ обследования объекта", "BuilderRole"),
+				("Технические условия на сети электроснабжение, водоснабжения, водоотведения при установке БМК", "BuilderRole"),
+				("Согласование посадки котельной", "BuilderRole"),
+
+				("Технико-экономические показатели (ТЭП)", "DesignerRole"),
+				("Вводной газопровод низкого давления", "BuilderRole"),
 			}
 		},
-		{"WaterSupply", new string[] {
-			"Акт обследования и выбора трассы сети водоснабжения",
-			"Акт обследования и выбор места под проектируемую скважину",
-			"Согласованный ситуационный план (М1:10000 или М1:25000) с нанесением источников воды (скважин, родников и т.п.), существующих водонапорных башен, предполагаемой трассой водопровода и места врезки в существующую сеть",
-			"План населённого пункта в М 1:1000 или М 1:500 топографическая съемка)",
-			"Технические условия на водоснабжение",
-			"Технические условия на электроснабжение (для насосной станции первого или второго подъема)",
-			"Градостроительный план земельного участка",
-			"Справка согласования с собственниками земельных участков",
-			"Документ, подтверждающий проведение межевания с присвоением кадастрового номера земельного участка под строительство водопровода и сооружений на нем",
-			"Заключение Органа Роспотребнадзора санитарно-эпидемиологической службы по отводу земельного участка и результат радиационного обследования",
-			"Сведения о наличие водозаборных скважин (родников) на территории хозяйства",
+		{"WaterSupply", new (string, string)[] {
+			("Акт обследования и выбора трассы сети водоснабжения", "BuilderRole"),
+			("Акт обследования и выбор места под проектируемую скважину", "BuilderRole"),
+			("Согласованный ситуационный план (М1:10000 или М1:25000) с нанесением источников воды (скважин, родников и т.п.), существующих водонапорных башен, предполагаемой трассой водопровода и места врезки в существующую сеть", "BuilderRole"),
+			("План населённого пункта в М 1:1000 или М 1:500 топографическая съемка)", "BuilderRole"),
+			("Технические условия на водоснабжение", "BuilderRole"),
+			("Технические условия на электроснабжение (для насосной станции первого или второго подъема)", "BuilderRole"),
+			("Градостроительный план земельного участка", "BuilderRole"),
+			("Справка согласования с собственниками земельных участков", "BuilderRole"),
+			("Документ, подтверждающий проведение межевания с присвоением кадастрового номера земельного участка под строительство водопровода и сооружений на нем", "BuilderRole"),
+			("Заключение Органа Роспотребнадзора санитарно-эпидемиологической службы по отводу земельного участка и результат радиационного обследования", "BuilderRole"),
+			("Сведения о наличие водозаборных скважин (родников) на территории хозяйства", "BuilderRole"),
 
-			"Технико-экономические показатели (ТЭП)",
+			("Технико-экономические показатели (ТЭП)", "DesignerRole"),
 			}
 		},
 	};
 
-	Order order;
-	List<AppUser> builders = new List<AppUser>();
-	List<AppUser> designers = new List<AppUser>();
+	Order Order;
+	List<AppUser> Builders = new List<AppUser>();
+	List<AppUser> Designers = new List<AppUser>();
 	string AuthorName = "";
-	string Message = "";
-	string role = "";
-	string title = "";
-	List<string> errors = new List<string>();
-	IBrowserFile file;
+	string CommentMessage = "";
+	string CurrentUserId = "";
+	string CurrentUserRole = "";
+	string DocumentTitle = "";
+	string Error = "";
+	IBrowserFile File;
 
 	protected override void OnInitialized()
 	{
 		if (!AuthStateProvider.IsAuthenticated) navManager.NavigateTo("");
-		order = orderService.GetOrder(Id);
+		Order = orderService.GetOrder(Id);
 		try
 		{
-			AuthorName = userService.GetUser(order.Author).FullName;
-			role = userService.GetRole();
-			builders = userService.GetUsersByRole("BuilderRole");
-			designers = userService.GetUsersByRole("DesignerRole");
+			AuthorName = userService.GetUser(Order.Author).FullName;
+			CurrentUserRole = userService.GetRole();
+			CurrentUserId = userService.GetId();
+			Builders = userService.GetUsersByRole("BuilderRole");
+			Designers = userService.GetUsersByRole("DesignerRole");
 		}
 		catch
 		{
@@ -241,37 +299,55 @@
 		}
 	}
 
+	private async void AddError(string error)
+	{
+		Error = error;
+		StateHasChanged();
+		await JS.InvokeVoidAsync("scrollToTopfunc");
+	}
+
 	private void UpdateOrder()
 	{
-		errors = new List<string>();
-		var builderUser = userService.GetUser(order.Builder);
-		var designerUser = userService.GetUser(order.Designer);
-		if (!(order.Builder == "" || (builderUser != null && builderUser.GetType() == new BuilderRole().GetType())))
+		var builderUser = userService.GetUser(Order.Builder);
+		var designerUser = userService.GetUser(Order.Designer);
+		if (!(Order.Builder == "" || (builderUser != null && builderUser.GetType() == new BuilderRole().GetType())))
 		{
-			errors.Add("Строитель не может бытть назначен!");
+			AddError("Строитель не может бытть назначен!");
 		}
-		if (!(order.Designer == "" || (designerUser != null && designerUser.GetType() == new DesignerRole().GetType())))
+		if (!(Order.Designer == "" || (designerUser != null && designerUser.GetType() == new DesignerRole().GetType())))
 		{
-			errors.Add("Дизайнер не может бытть назначен!");
+			AddError("Дизайнер не может бытть назначен!");
 		}
-		orderService.UpdateOrder(order);
+		orderService.UpdateOrder(Order);
 		StateHasChanged();
 	}
 
 	private void AddMessage()
 	{
+		if (CommentMessage == "")
+		{
+			AddError("Введите сообщение!");
+			return;
+		}
 		Comment comment = new Comment()
 			{
 				User = userService.GetId(),
-				Message = Message
+				Message = CommentMessage
 			};
-		order.Comments.Add(comment);
+		Order.Comments.Add(comment);
+		UpdateOrder();
+		CommentMessage = "";
+	}
+
+	private void DeleteComment(Comment comment)
+	{
+		Order.Comments.Remove(comment);
 		UpdateOrder();
 	}
 
 	private void OnInputFileChange(InputFileChangeEventArgs e)
 	{
-		file = e.File;
+		File = e.File;
 		//string[] tempExt = file.Name.ToLower().Split('.');
 		//string ext = tempExt[tempExt.Length - 1];
 		//string name = Path.GetRandomFileName() + '.' + ext;
@@ -284,34 +360,35 @@
 
 	private async void AddDocument()
 	{
-		if (IndustryTitles[order.Industry].Contains(title) && file != null)
+		if (DocumentTitles[Order.Industry].Where(x => x.Item1 == DocumentTitle).FirstOrDefault() != (null, null) && File != null)
 		{
-			string fileid = await fsService.UploadFileAsync(file.Name, file.OpenReadStream(4096000000));
-			order.Documents.Add(new OrderDocument()
+			string fileid = await fsService.UploadFileAsync(File.Name, File.OpenReadStream(4096000000));
+			Order.Documents.Add(new OrderDocument()
 				{
-					Title = title,
+					Title = DocumentTitle,
 					FileId = fileid,
-					OrderId = order.Id,
+					OrderId = Order.Id,
 				});
-			file = null;
+			DocumentTitle = "";
+			File = null;
 			UpdateOrder();
 		}
 		else
 		{
-			errors.Add("Неправильный тип файла");
+			AddError("Неправильный тип файла");
 		}
 	}
 
 	private async void DeleteFile(string fileId)
 	{
 		fsService.DeleteFile(fileId);
-		order.Documents.Remove(order.Documents.Find(x => x.FileId == fileId));
+		Order.Documents.Remove(Order.Documents.Find(x => x.FileId == fileId));
 		UpdateOrder();
 	}
 
 	private async void DownloadFile(string fileId)
 	{
-		if (role != null && role.Contains("Role") && fileId != "")
+		if (CurrentUserRole != null && CurrentUserRole.Contains("Role") && fileId != "")
 		{
 			var filename = fsService.IsExsists(fileId);
 			if (filename != null)
@@ -319,6 +396,10 @@
 				var stream = await fsService.DownloadFileAsync(fileId);
 				await DownloadFileFromStream(filename, stream);
 			}
+		}
+		else
+		{
+			AddError("Недостаточно прав!");
 		}
 	}
 
