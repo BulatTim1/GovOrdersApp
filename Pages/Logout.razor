@@ -12,9 +12,14 @@
         AuthStateProvider.IsAuthenticated = false;
         AuthStateProvider.UserName = "";
         AuthStateProvider.Role = "Guest";
-        userService.Logout();
-        navManager.NavigateTo("");
-
-        authStateProvider.NotifyAuthenticationStateChanged();
-	}
+        try
+        {
+            userService.Logout();
+        }
+        finally
+        {
+            navManager.NavigateTo("");
+            authStateProvider.NotifyAuthenticationStateChanged();
+        }
+    }
 }

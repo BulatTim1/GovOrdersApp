@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {
-    public static bool IsAuthenticated { get; set; }
+    public static bool IsAuthenticated { get; set; } = false;
     public static string UserName { get; set; }
     public static string Role { get; set; }
 

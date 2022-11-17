@@ -310,13 +310,13 @@
 	{
 		var builderUser = userService.GetUser(Order.Builder);
 		var designerUser = userService.GetUser(Order.Designer);
-		if (!(Order.Builder == "" || (builderUser != null && builderUser.GetType() == new BuilderRole().GetType())))
+		if (!(Order.Builder == null || (builderUser != null && builderUser.GetType() == new BuilderRole().GetType())))
 		{
-			AddError("Строитель не может бытть назначен!");
+			AddError("Строитель не может быть назначен!");
 		}
-		if (!(Order.Designer == "" || (designerUser != null && designerUser.GetType() == new DesignerRole().GetType())))
+		if (!(Order.Designer == null || (designerUser != null && designerUser.GetType() == new DesignerRole().GetType())))
 		{
-			AddError("Дизайнер не может бытть назначен!");
+			AddError("Дизайнер не может быть назначен!");
 		}
 		orderService.UpdateOrder(Order);
 		StateHasChanged();

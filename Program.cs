@@ -56,4 +56,13 @@ BsonClassMap.RegisterClassMap<Order>();
 DBConnection.users.Indexes.CreateOne(new CreateIndexModel<AppUser>(Builders<AppUser>.IndexKeys.Ascending(x => x.Login), new CreateIndexOptions { Unique = true }));
 DBConnection.users.Indexes.CreateOne(new CreateIndexModel<AppUser>(Builders<AppUser>.IndexKeys.Ascending(x => x.Email), new CreateIndexOptions { Unique = true }));
 
+//DBConnection.users.InsertOne(new AdminRole()
+//{
+//    Login = "admin",
+//    Email = "admin@localhost",
+//    FullName = "Admin",
+//    Password = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+//    Phone = "+7 (912) 345 67-89"
+//});
+
 app.Run();

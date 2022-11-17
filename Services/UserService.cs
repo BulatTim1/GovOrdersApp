@@ -20,7 +20,7 @@ namespace GovOrdersApp.Services
         {
             return _context.GetUsersByRole(role);
         }
-        
+
         public string Authorization(string login, string password)
         {
             login = login.Trim();
@@ -37,7 +37,7 @@ namespace GovOrdersApp.Services
                 _context.UpdateUser(res);
                 CurrentUser = res;
                 return "";
-            } 
+            }
             return "Неверный логин или пароль";
         }
 
@@ -57,7 +57,7 @@ namespace GovOrdersApp.Services
             }
             password = sha256_hash(password);
             AppUser newUser;
-            switch(role)
+            switch (role)
             {
                 case "Customer":
                     if (industry == "")
@@ -88,7 +88,8 @@ namespace GovOrdersApp.Services
                 newUser.Token = Guid.NewGuid().ToString();
                 _context.UpdateUser(newUser);
                 return "";
-            } catch
+            }
+            catch
             {
                 return "Такой пользователь уже существует!";
             }
@@ -110,7 +111,7 @@ namespace GovOrdersApp.Services
             _context.UpdateUser(CurrentUser);
             CurrentUser = null;
         }
-        
+
         public string? GetUsername()
         {
             if (CurrentUser != null)
@@ -201,7 +202,7 @@ namespace GovOrdersApp.Services
 
         public bool CheckToken(string token)
         {
-            if (CurrentUser != null || token != "")
+            if (token != null && token != "")
             {
                 CurrentUser = _context.CheckToken(token);
                 if (CurrentUser != null)
@@ -211,7 +212,7 @@ namespace GovOrdersApp.Services
             }
             return false;
         }
-        
+
         public static String sha256_hash(string value)
         {
             StringBuilder Sb = new StringBuilder();
