@@ -116,7 +116,7 @@
 			}
 			else
 			{
-				<p>@Order.Industry</p>
+				<p>@Industries[Order.Industry]</p>
 			}
 			<br />
 			<input class="form-control btn btn-primary" type="submit" value="Обновить" />
@@ -128,6 +128,7 @@
 			<p>Название: @Order.Title</p>
 			<p>Описание: @Order.Description</p>
 			<p>Закачик: @AuthorName</p>
+			<p>@Industries[Order.Industry]</p>
 			<p>Проектировщик: @(Designers.Where(x => x.Id == Order.Designer).FirstOrDefault()?.FullName)</p>
 			<p>Заказчик: @(Builders.Where(x => x.Id == Order.Builder).FirstOrDefault()?.FullName)</p>
 		</div>
